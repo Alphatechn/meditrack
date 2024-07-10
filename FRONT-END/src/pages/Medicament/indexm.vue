@@ -1,0 +1,158 @@
+<template>
+  <div class="pagetitle">
+    <h1>Medicament</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+          <router-link to="/home">Home</router-link>
+        </li>
+        <li class="breadcrumb-item">Medicament</li>
+        <li class="breadcrumb-item active">Listes</li>
+      </ol>
+    </nav>
+  </div>
+  <!-- End Page Title -->
+  <div class="content">
+    <div class="container-fluid">
+      <div class="card">
+        <div class="card-body">
+          <div class="row justify-content-center">
+            <h1 id="ll" class="card-title text-center">
+              <b> LISTE DE MEDICAMENT </b>
+            </h1>
+          </div>
+
+          <div class="row justify-content-end mr-1">
+            <p>
+              <button class="btn btn-success w-">
+                <router-link class="text-white link" to="/med/c_med">
+                  Ajouter un medicament<i class="fas fa-plus"></i
+                ></router-link>
+              </button>
+            </p>
+          </div>
+
+          <table ref="dataTable" class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th scope="col">N°</th>
+                <th scope="col">libelle</th>
+                <th scope="col">categorie</th>
+                <th scope="col">Prix</th>
+                <th scope="col">Option</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(medicament, indexm) in allmed" :key="medicament.id">
+                <td>{{ i + indexm }}</td>
+                <td>{{ medicament.medi }}</td>
+                <td>{{ medicament.categorie }}</td>
+                <td>{{ medicament.prix }}</td>
+
+                <td><Optionsm :medicament="medicament" /></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+<style>
+</style>
+<script>
+import Optionsm from "./Optionsm.vue";
+
+export default {
+  name: "Liste",
+  components: { Optionsm },
+  data() {
+    return {
+      i: 1,
+      allmed: [],
+      dataTable: null,
+    };
+  },
+  methods: {
+    async fetchMedicament() {
+      const medicament = await fetch("http://127.0.0.1:8000/api/medicament", {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("current_token"),
+          "Content-type": "application/json",
+        },
+      });
+
+      const Medicament = await medicament.json();
+      return Medicament;
+    },
+    initializeDataTable() {
+      this.dataTable = $(this.$refs.dataTable).DataTable({
+        lengthMenu: [10, 25, 50, 100, "Tous"],
+        language: {
+          decimal: "",
+          emptyTable: "Aucune donnée disponible dans le tableau",
+          info: "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+          infoEmpty: "Affichage de 0 à 0 sur 0 entrée",
+          infoFiltered: "(filtré à partir de _MAX_ entrées au total)",
+          infoPostFix: "",
+          thousands: ",",
+          lengthMenu: "Afficher _MENU_ entrées",
+          loadingRecords: "Chargement...",
+          processing: "Traitement...",
+          search: "Rechercher :",
+          zeroRecords: "Aucun enregistrement correspondant trouvé",
+          paginate: {
+            first: "Premier",
+            last: "Dernier",
+            next: "Suivant",
+            previous: "Précédent",
+          },
+          aria: {
+            sortAscending:
+              ": activer pour trier la colonne par ordre croissant",
+            sortDescending:
+              ": activer pour trier la colonne par ordre décroissant",
+          },
+        },
+        dom: "lBfrtip",
+        buttons: [
+          {
+            extend: "print",
+            text: "Imprimer",
+            exportOptions: {
+              columns: [0, 1, 2, 3],
+            },
+          },
+          // {
+          //   extend: 'pdfHtml5',
+          //   text: 'PDF',
+          //   exportOptions: {
+          //     columns: [0, 1, 2, 3]
+          //   }
+          // },
+          {
+            extend: "excel",
+            text: "Excel",
+            exportOptions: {
+              columns: [0, 1, 2, 3],
+            },
+          },
+          "colvis",
+        ],
+      });
+    },
+  },
+  async mounted() {
+    this.allmed = await this.fetchMedicament();
+    this.$nextTick(() => {
+      this.initializeDataTable();
+    });
+  },
+  beforeDestroy() {
+    if (this.dataTable) {
+      this.dataTable.destroy();
+    }
+  },
+};
+</script>
